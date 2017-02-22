@@ -115,6 +115,8 @@ struct twms_conf {
     // The output and input raster figures
     TiledRaster raster;
 
+    const char *cfg_filename_template;
+
     int enabled;
 };
 
