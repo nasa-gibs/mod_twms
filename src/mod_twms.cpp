@@ -333,12 +333,28 @@ static int handler(request_rec *r)
     if (!our_request(r)) 
         return DECLINED;
     apr_table_t *args = tokenize_args(r);
+
+    const char *request = apr_table_get(args, "request");
+    if (request) {
+        const char *lookup_uri = NULL;
+        if (apr_strnatcasecmp(request, "GetCapabilities") == 0) {
+            lookup_uri = ".lib/getCapabilities.xml";
+        } else if (apr_strnatcasecmp(request, "GetTileService") == 0) {
+            lookup_uri = ".lib/getTileService.xml";
+        } else {
+            return HTTP_BAD_REQUEST;
+        }
+        request_rec *rr = ap_sub_req_lookup_uri(lookup_uri, r, r->output_filters);   
+        ap_set_content_type(rr, "text/xml");
+        return ap_run_sub_req(rr);   
+    }
+
     const char *bb_string = apr_table_get(args, "bbox");
 
     // Missing the required bbox argument
     if (!bb_string) 
         return HTTP_BAD_REQUEST;
-    // this should be picked up by the regexp, in which case the response will be HTTP_FORBIDEN
+    // this should be picked up by the regexp, in which case the response will be HTTP_FORBIDDEN
 
     bbox_t bbox;
     message = getbbox(bb_string, &bbox);
