@@ -38,6 +38,19 @@ static apr_table_t* tokenize_args(request_rec *r)
 //     return "";
 // }
 
+static const char *get_base_uri(request_rec *r)
+{
+    const char *uri = r->uri;
+    int uri_len = strlen(uri);
+    int i;
+    for (i=0;i<uri_len; i++)
+    {
+        if (uri[uri_len-i] == '/') break;
+    }
+    return apr_pstrmemdup(r->pool, uri, uri_len-i);
+}
+
+
 static const char *add_date_to_uri(apr_pool_t *p, const char *source_str, const char *date_str)
 {
     if (const char *datefield = ap_strstr(source_str, "${date}")) {
@@ -344,9 +357,8 @@ static int handler(request_rec *r)
         } else {
             return HTTP_BAD_REQUEST;
         }
-        request_rec *rr = ap_sub_req_lookup_uri(lookup_uri, r, r->output_filters);   
-        ap_set_content_type(rr, "text/xml");
-        return ap_run_sub_req(rr);   
+        ap_internal_redirect(apr_psprintf(r->pool, "%s/%s", get_base_uri(r), lookup_uri), r);
+        return OK;
     }
 
     const char *bb_string = apr_table_get(args, "bbox");
