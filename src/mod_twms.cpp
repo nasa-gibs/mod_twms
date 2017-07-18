@@ -346,19 +346,18 @@ static int handler(request_rec *r)
     if (!our_request(r)) 
         return DECLINED;
     apr_table_t *args = tokenize_args(r);
-
-    const char *request = apr_table_get(args, "request");
-    if (request) {
+    
+    if (const char *request = apr_table_get(args, "request")) {
         const char *lookup_uri = NULL;
         if (apr_strnatcasecmp(request, "GetCapabilities") == 0) {
             lookup_uri = ".lib/getCapabilities.xml";
         } else if (apr_strnatcasecmp(request, "GetTileService") == 0) {
             lookup_uri = ".lib/getTileService.xml";
-        } else {
-            return HTTP_BAD_REQUEST;
         }
-        ap_internal_redirect(apr_psprintf(r->pool, "%s/%s", get_base_uri(r), lookup_uri), r);
-        return OK;
+        if (lookup_uri) {
+            ap_internal_redirect(apr_psprintf(r->pool, "%s/%s", get_base_uri(r), lookup_uri), r);
+            return OK;
+        }
     }
 
     const char *bb_string = apr_table_get(args, "bbox");
@@ -390,16 +389,14 @@ static int handler(request_rec *r)
 
     // Get TIME and append it to the source URI if applicable
     const char *source = cfg->source;
-    if (const char *time_str = apr_table_get(args, "time")) 
-    {
-        source = add_date_to_uri(r->pool, cfg->source, time_str);
-    }
+    const char *time_str = apr_table_get(args, "time") ? apr_table_get(args, "time") : "default";
+    source = add_date_to_uri(r->pool, cfg->source, time_str);
 
     // Convert to a source tile
     if (&tile != bbox_to_tile(cfg->raster, bbox, &tile))
         return HTTP_BAD_REQUEST;
 
-// The types and format below have to match
+    // The types and format below have to match
     unsigned int level  = static_cast<unsigned int>(tile.l);
     unsigned int row    = static_cast<unsigned int>(tile.y);
     unsigned int column = static_cast<unsigned int>(tile.x);
