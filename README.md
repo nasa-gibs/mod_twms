@@ -5,6 +5,18 @@
 
 An apache httpd module converting tiledWMS requests to the REST M/L/R/C encoding
 
+* Requirements
+- Apache 2.x, runtime and development
+* Building
+
+** Linux
+In the src folder, edit Copy Makefile.lcl.example as Makefile.lcl, edit content to match the current system.  Then run make.
+
+** Windows
+Visual Studio 2013 solution is included.  It assumes Apache 2.4 is installed under __\\Apache24, including the development files.
+
+* Usage
+
 Implements two apache configuration directives:
 **tWMS_RegExp string**
 Can be present more than once, one of the existing regular expressions has to match the request URL for the request to be considered
@@ -25,3 +37,4 @@ Raster and tiled WMS specific directives
 * SourcePostfix string : Optional, a string which will be appended to the source URL, after the tile address.  Can not include http paramters.
 
 The extra dimension of the tile dataset can be passed as the value for the parameter called M. If present, the source service will receive tile requests with four numerical values, M/L/R/C
+

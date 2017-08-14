@@ -1,4 +1,5 @@
-C_SRC = mod_twms.cpp
+MODULE = mod_twms
+C_SRC = $(MODULE).cpp
 FILES = $(C_SRC)
 OBJECTS = $(FILES:.cpp=.lo)
 
@@ -12,12 +13,12 @@ LIBS =
 # For example look at Makefile.lcl.example
 
 include Makefile.lcl
-TARGET = .libs/mod_twms.so
+TARGET = .libs/$(MODULE).so
 
 # Can't use apxs to build c++ modules
 # The options used here might depend on how apache was built
 $(TARGET)       :       $(OBJECTS)
-	libtool --mode=link g++ -o mod_twms.la -rpath $(MOD_PATH) -module -avoid-version $^ $(LIBS)
+	libtool --mode=link g++ -o $(MODULE).la -rpath $(MOD_PATH) -module -avoid-version $^ $(LIBS)
 
 %.lo	:	%.cpp
 	libtool --mode=compile g++ -std=c++0x -prefer-pic -O2 -Wall $(DEFINES) $(INCLUDES) -pthread -c -o $@ $< && touch $(@:.lo=.slo)
@@ -26,5 +27,4 @@ install : $(TARGET)
 	sudo cp $(TARGET) $(MOD_PATH)
 
 clean   :
-	rm -rf .libs *.{o,lo,slo,la}
-
+	rm -rf .libs *.o *.lo *.slo *.la
